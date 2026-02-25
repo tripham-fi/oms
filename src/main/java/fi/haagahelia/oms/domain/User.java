@@ -34,6 +34,9 @@ public class User {
         this.enabled = enabled;
         this.role = role;
     }
+    public User() {
+
+    }
 
     public Long getId() {
         return id;
