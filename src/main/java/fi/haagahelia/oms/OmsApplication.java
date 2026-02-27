@@ -2,14 +2,28 @@ package fi.haagahelia.oms;
 
 import fi.haagahelia.oms.domain.User;
 import fi.haagahelia.oms.repository.UserRepository;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+
+
+@OpenAPIDefinition(
+		info = @Info(
+				title = "OMS - Meeting Room & Event Scheduling API",
+				version = "0.1.0",
+				description = "REST API for managing meeting rooms, events, bookings and user access."
+		)
+)
 @SpringBootApplication
 public class OmsApplication {
+	private static final Logger log = LoggerFactory.getLogger(OmsApplication.class);
 
 	public static void main(String[] args) {
 		SpringApplication.run(OmsApplication.class, args);
@@ -21,7 +35,7 @@ public class OmsApplication {
 		return args -> {
 			if (userRepository.count() == 0) {
 
-				System.out.println("Creating initial users...");
+				log.info("Creating initial users...");
 
 				// Admin
 				User admin = new User();
@@ -34,7 +48,7 @@ public class OmsApplication {
 
 				// Super Admin
 				User superAdmin = new User();
-				superAdmin.setUsername("superadmin");
+				superAdmin.setUsername("supa");
 				superAdmin.setEmail("superadmin@example.com");
 				superAdmin.setPassword(passwordEncoder.encode("super123"));
 				superAdmin.setRole("SUPER_ADMIN");
@@ -42,7 +56,7 @@ public class OmsApplication {
 				userRepository.save(superAdmin);
 
 			} else {
-				System.out.println("Users already exist → skipping initial user creation");
+				log.info("Users already exist → skipping initial user creation");
 			}
 		};
 	}

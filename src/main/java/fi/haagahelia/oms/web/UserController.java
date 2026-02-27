@@ -6,12 +6,14 @@ import fi.haagahelia.oms.dto.Result;
 import fi.haagahelia.oms.dto.UserDto;
 import fi.haagahelia.oms.service.UserService;
 import fi.haagahelia.oms.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Users", description = "User list, registration, login and authentication")
 @RestController
 @RequestMapping("/users")
 public class UserController {
