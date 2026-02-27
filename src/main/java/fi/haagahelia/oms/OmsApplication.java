@@ -1,11 +1,12 @@
 package fi.haagahelia.oms;
 
-import fi.haagahelia.oms.domain.Role;
-import fi.haagahelia.oms.repository.RoleRepository;
+import fi.haagahelia.oms.domain.User;
+import fi.haagahelia.oms.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootApplication
 public class OmsApplication {
@@ -15,16 +16,33 @@ public class OmsApplication {
 	}
 
 	@Bean
-	public CommandLineRunner demo(RoleRepository roleRepository) {
+	public CommandLineRunner demo(UserRepository userRepository,
+								  PasswordEncoder passwordEncoder) {
 		return args -> {
-			String[] roles = {"EMPLOYEE", "ADMIN", "SUPER_ADMIN"};
-			for (String roleName : roles) {
-				if (roleRepository.findByName(roleName).isEmpty()) {
-					Role role = new Role();
-					role.setName(roleName);
-					roleRepository.save(role);
-					System.out.println("Created default role: " + roleName);
-				}
+			if (userRepository.count() == 0) {
+
+				System.out.println("Creating initial users...");
+
+				// Admin
+				User admin = new User();
+				admin.setUsername("admin");
+				admin.setEmail("admin@example.com");
+				admin.setPassword(passwordEncoder.encode("admin123"));
+				admin.setRole("ADMIN");
+				admin.setEnabled(true);
+				userRepository.save(admin);
+
+				// Super Admin
+				User superAdmin = new User();
+				superAdmin.setUsername("superadmin");
+				superAdmin.setEmail("superadmin@example.com");
+				superAdmin.setPassword(passwordEncoder.encode("super123"));
+				superAdmin.setRole("SUPER_ADMIN");
+				superAdmin.setEnabled(true);
+				userRepository.save(superAdmin);
+
+			} else {
+				System.out.println("Users already exist → skipping initial user creation");
 			}
 		};
 	}

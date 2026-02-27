@@ -1,18 +1,19 @@
 package fi.haagahelia.oms.web;
 
-import fi.haagahelia.oms.domain.User;
+import fi.haagahelia.oms.dto.ApiResponseDto;
 import fi.haagahelia.oms.dto.RegisterDto;
+import fi.haagahelia.oms.dto.Result;
+import fi.haagahelia.oms.dto.UserDto;
 import fi.haagahelia.oms.service.UserService;
+import fi.haagahelia.oms.util.ResponseUtil;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
@@ -21,58 +22,38 @@ public class UserController {
         this.userService = userService;
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public String showLoginPage() {
+    @RequestMapping(value = "/current", method = RequestMethod.GET)
+    public ResponseEntity<ApiResponseDto<UserDto>> getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (isUserLoggedIn()) {
-            return "redirect:/profile";
-        }
-        return "login";
-    }
-
-    @RequestMapping(value = "/register", method = RequestMethod.GET)
-    public String showRegisterPage(Model model) {
-        if (isUserLoggedIn()) {
-            return "redirect:/profile";
+        if (!isUserLoggedIn(auth)) {
+            return ResponseUtil.unauthorized("Not authenticated");
         }
 
-        model.addAttribute("registerDto", new RegisterDto());
-        return "register";
+        String username = auth.getName();
+        Result<UserDto> result = userService.getCurrentUser(username);
+        return ResponseUtil.handleResult(result);
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public String registerUser(@ModelAttribute("registerDto") RegisterDto dto, Model model) {
-
+    public ResponseEntity<ApiResponseDto<String>> register(@Valid @RequestBody RegisterDto dto) {
         try {
-            this.userService.register(dto);
-            return "redirect:/login?success";
+            userService.register(dto);
+            return ResponseUtil.created("User registered successfully");
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            model.addAttribute("registerDto", dto);
-            return "register";
+            return ResponseUtil.badRequest(e.getMessage());
         }
     }
 
-    @RequestMapping(value = "/profile", method = RequestMethod.GET)
-    public String showProfilePage(Model model) {
-
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.findByUsername(username).orElse(null);
-
-        if (user != null) {
-            model.addAttribute("user", user);
-        } else {
-            model.addAttribute("msg", "User not found");
-        }
-
-        return "profile";
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    public ResponseEntity<ApiResponseDto<String>> login() {
+        // TODO: JWT TOKEN IMPLEMENT NEEDED
+        return ResponseUtil.success("Login successful (placeholder)");
     }
 
-    public boolean isUserLoggedIn() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
+    private boolean isUserLoggedIn(Authentication auth) {
         return auth != null &&
                 auth.isAuthenticated() &&
-                auth.getPrincipal() instanceof UserDetails;
+                !(auth.getPrincipal() instanceof String);
     }
 }
