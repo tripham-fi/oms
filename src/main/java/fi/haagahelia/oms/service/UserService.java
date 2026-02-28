@@ -1,16 +1,15 @@
 package fi.haagahelia.oms.service;
 
 import fi.haagahelia.oms.domain.User;
-import fi.haagahelia.oms.dto.RegisterDto;
-import fi.haagahelia.oms.dto.Result;
-import fi.haagahelia.oms.dto.UserDto;
+import fi.haagahelia.oms.dto.*;
 import fi.haagahelia.oms.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -41,17 +40,17 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
-
-    public Result<UserDto> getCurrentUser(String username) {
+    public Result<UserDto> findByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return Result.success(UserDto.from(user));
+    }
+
+    public Result<List<UserDto>> getUsers() {
+        List<User> users = userRepository.findAll();
+        List<UserDto> dtos = users.stream()
+                .map(UserDto::from)
+                .collect(Collectors.toList());
+        return Result.success(dtos);
     }
 }

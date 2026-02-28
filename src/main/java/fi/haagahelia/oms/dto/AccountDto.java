@@ -10,26 +10,23 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
+public class AccountDto {
+    public String username;
+    public String fullName;
+    public String role;
+    public boolean enabled;
+    public boolean defaultPassword;
 
-    private Long id;
-    private String username;
-    private String fullName;
-    private String email;
-    private String role;        // e.g. "EMPLOYEE", "ADMIN", "SUPER_ADMIN"
-    private boolean enabled;
-
-    public static UserDto from(User user) {
+    public static AccountDto from(User user) {
         if (user == null) {
             return null;
         }
-        return UserDto.builder()
-                .id(user.getId())
+        return AccountDto.builder()
                 .username(user.getUsername())
                 .fullName(user.getFullname())
-                .email(user.getEmail())
                 .role(user.getRole())
                 .enabled(user.isEnabled())
+                .defaultPassword(user.isDefaultPassword())
                 .build();
     }
 }
