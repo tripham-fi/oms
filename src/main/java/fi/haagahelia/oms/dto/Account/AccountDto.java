@@ -1,4 +1,4 @@
-package fi.haagahelia.oms.dto;
+package fi.haagahelia.oms.dto.Account;
 
 import fi.haagahelia.oms.domain.User;
 import lombok.AllArgsConstructor;

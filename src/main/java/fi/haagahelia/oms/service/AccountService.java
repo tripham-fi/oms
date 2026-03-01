@@ -1,8 +1,8 @@
 package fi.haagahelia.oms.service;
 
 import fi.haagahelia.oms.domain.User;
-import fi.haagahelia.oms.dto.AccountDto;
-import fi.haagahelia.oms.dto.ChangePasswordDto;
+import fi.haagahelia.oms.dto.Account.AccountDto;
+import fi.haagahelia.oms.dto.Account.ChangePasswordDto;
 import fi.haagahelia.oms.dto.Result;
 import fi.haagahelia.oms.repository.UserRepository;
 import fi.haagahelia.oms.util.SecurityUtil;

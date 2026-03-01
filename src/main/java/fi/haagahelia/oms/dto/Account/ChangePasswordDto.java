@@ -1,4 +1,4 @@
-package fi.haagahelia.oms.dto;
+package fi.haagahelia.oms.dto.Account;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
