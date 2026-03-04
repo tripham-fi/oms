@@ -1,21 +1,64 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import type { UserRole } from '../constants/type';
+import { Navigate, Outlet } from "react-router-dom";
+import type { UserRole } from "../constants/type";
+import { useMemo } from "react";
+import { jwtDecode } from "jwt-decode";
 
-const getCurrentUser = () => {
-  const token = localStorage.getItem('jwtToken');
+interface JwtPayload {
+  sub: string;
+  roles: string[];
+  iat: number;
+  exp: number;
+}
+
+interface AuthUser {
+  username: string;
+  role: UserRole;
+}
+
+const getCurrentUser = (): AuthUser | null => {
+  const token = localStorage.getItem("jwtToken");
   if (!token) return null;
 
-  return { role: 'Admin' as UserRole };
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+
+    if (decoded.exp * 1000 < Date.now()) {
+      localStorage.removeItem("jwtToken");
+      return null;
+    }
+
+    const rawRole = decoded.roles?.[0] || "";
+
+    const role = rawRole.startsWith("ROLE_")
+      ? (rawRole.substring(5) as UserRole)
+      : (rawRole as UserRole);
+
+    if (!role) {
+      localStorage.removeItem("jwtToken");
+      return null;
+    }
+
+    return {
+      username: decoded.sub,
+      role,
+    };
+  } catch (err) {
+    console.error("Invalid or malformed JWT token:", err);
+    localStorage.removeItem("jwtToken");
+    return null;
+  }
 };
 
-interface ProtectedRouteProps {
+interface CustomRouteProps {
   requiredRole?: UserRole | UserRole[];
   redirectTo?: string;
 }
 
-
-const ProtectedRoute = ({ requiredRole, redirectTo = '/login' }: ProtectedRouteProps = {}) => {
-  const user = getCurrentUser();
+const CustomRoute = ({
+  requiredRole,
+  redirectTo = "/login",
+}: CustomRouteProps = {}) => {
+  const user = useMemo(() => getCurrentUser(), []);
 
   // Not logged in → redirect
   if (!user) {
@@ -31,11 +74,11 @@ const ProtectedRoute = ({ requiredRole, redirectTo = '/login' }: ProtectedRouteP
       : userRole === requiredRole;
 
     if (!hasRole) {
-      return <Navigate to="/" replace />; // or to forbidden page
+      return <Navigate to="/" replace />; // forbidden page
     }
   }
 
   return <Outlet />;
 };
 
-export default ProtectedRoute;
+export default CustomRoute;

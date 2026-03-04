@@ -1,0 +1,99 @@
+.modal-header-popupModal {
+  left: 50px;
+  top: 17px;
+  white-space: nowrap;
+  line-height: 67px;
+  text-align: left;
+  font-family:
+    Segoe UI,
+    Arial;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 20px;
+  color: rgba(207, 35, 56, 1);
+  background-color: rgba(239, 241, 245, 1);
+}
+.modal-header-popupModal > .modal-title {
+  width: 100%;
+}
+
+.modal-body-popupModal {
+  background-color: rgba(250, 252, 252, 1);
+  stroke: rgba(33, 37, 41, 1);
+  stroke-width: 1px;
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+  stroke-miterlimit: 4;
+  shape-rendering: auto;
+  border: 0 none;
+}
+
+.modal-input-popupModal {
+  background-color: rgba(255, 255, 255, 1);
+  stroke: rgba(112, 112, 112, 1);
+  stroke-width: 1px;
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+  stroke-miterlimit: 4;
+  shape-rendering: auto;
+  height: 25px;
+  left: 90px;
+  top: 0px;
+}
+
+.modal-save-button-popupModal {
+  margin-top: 25px;
+  margin-left: 130px;
+}
+
+.modal-cancel-button-popupModal {
+  margin-top: 25px;
+  margin-left: 15px;
+}
+
+/* Change Password First Login Modal */
+
+#newpwdField {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+}
+
+#newpwdField > * {
+  padding: 0;
+}
+
+#newpwdLabel > .label {
+  width: 100%;
+}
+
+#newpwd {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#newpwd > input {
+  width: 100%;
+}
+
+#newpwdIcon {
+  display: flex;
+  align-items: center;
+  height: 25px;
+}
+
+#newpwdIcon > i:hover {
+  color: #00fcb6;
+}
+
+@media (max-width: 600px) {
+  #newpwdField {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #newpwdIcon {
+    height: auto;
+  }
+}

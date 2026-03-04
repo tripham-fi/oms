@@ -35,7 +35,6 @@ public class AccountService {
         }
 
         user.setPassword(passwordEncoder.encode(input.getNewPassword()));
-        user.setDefaultPassword(false);
 
         userRepository.save(user);
 
@@ -43,15 +42,23 @@ public class AccountService {
     }
 
     @Transactional
-    public Result<AccountDto> markFirstLoginCompleted(String username) {
+    public Result<AccountDto> resetPassword(String username, String newpassword) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
         if (!user.isDefaultPassword()) {
-            return Result.success(AccountDto.from(user));
+            return Result.failure("Password reset only allowed on first login");
         }
 
-        user.setDefaultPassword(false);
+        if (newpassword.length() < 8) {
+            return Result.failure("New password must be at least 8 characters");
+        }
+
+        if (passwordEncoder.matches(newpassword, user.getPassword())) {
+            return Result.failure("New password cannot be the same as the current one");
+        }
+
+        user.setPassword(passwordEncoder.encode(newpassword));
+
         userRepository.save(user);
 
         return Result.success(AccountDto.from(user));

@@ -3,6 +3,7 @@ package fi.haagahelia.oms.api;
 
 import fi.haagahelia.oms.dto.Account.AccountDto;
 import fi.haagahelia.oms.dto.Account.LoginDto;
+import fi.haagahelia.oms.dto.Account.ResetPasswordDto;
 import fi.haagahelia.oms.dto.ApiResponseDto;
 import fi.haagahelia.oms.dto.Account.ChangePasswordDto;
 import fi.haagahelia.oms.dto.Result;
@@ -32,21 +33,18 @@ public class AccountController {
     private final AccountService accountService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
 
     public AccountController(AccountService accountService,
                              AuthenticationManager authenticationManager,
-                             JwtService jwtService,
-                             UserDetailsService userDetailsService) {
+                             JwtService jwtService) {
         this.accountService = accountService;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
-        this.userDetailsService = userDetailsService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> login(
-            LoginDto input) {
+            @RequestBody LoginDto input) {
 
         String username = input.getUsername();
         String password = input.getPassword();
@@ -94,26 +92,19 @@ public class AccountController {
     @RequestMapping(value = "/change-password", method = RequestMethod.PUT)
     public ResponseEntity<ApiResponseDto<AccountDto>> changePassword(
             @Valid @RequestBody ChangePasswordDto dto) {
-        // TODO: Enforcing mandatory for first login
-
-        if (!SecurityUtil.isAuthenticated()) {
-            return ResponseUtil.unauthorized("Not authenticated");
-        }
-
         String username = SecurityUtil.getCurrentUsernameOrThrow();
         Result<AccountDto> result = accountService.changePassword(username, dto);
 
         return ResponseUtil.handleResult(result);
     }
 
-    @RequestMapping(value = "/first-login", method = RequestMethod.GET)
-    public ResponseEntity<ApiResponseDto<AccountDto>> firstLogin() {
-        if (!SecurityUtil.isAuthenticated()) {
-            return ResponseUtil.unauthorized("Not authenticated");
-        }
-
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/reset-password", method = RequestMethod.PUT)
+    public ResponseEntity<ApiResponseDto<AccountDto>> resetPassword(
+            @Valid @RequestBody ResetPasswordDto dto) {
         String username = SecurityUtil.getCurrentUsernameOrThrow();
-        Result<AccountDto> result = accountService.markFirstLoginCompleted(username);
+
+        Result<AccountDto> result = accountService.resetPassword(username, dto.getNewPassword());
 
         return ResponseUtil.handleResult(result);
     }

@@ -1,47 +1,69 @@
-// src/pages/Login.tsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios, { AxiosError } from 'axios'; // ← added AxiosError import
-import { Button, Form, Header, Icon, Message, Segment, Container } from 'semantic-ui-react';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Button,
+  Form,
+  Header,
+  Icon,
+  Message,
+  Segment,
+  Container,
+} from "semantic-ui-react";
+import type { loginRequest } from "../../constants/RequestType";
+import { useStore } from "../../api/store";
+import LoadingComponent from "../../components/LoadingComponent";
+import { observer } from "mobx-react-lite";
 
-const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+const LoginPage = observer(() => {
+  const {
+    accountStore: {
+      login,
+      error: storeError,
+      loadingInitial,
+      appLoaded,
+      isLoggedIn,
+      setAccount,
+      setAppLoaded
+    },
+  } = useStore();
+  const [request, setRequest] = useState<loginRequest>({
+    username: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("jwtToken");
+    if (token && !isLoggedIn && !loadingInitial) {
+      setAccount().catch(() => {
+        localStorage.removeItem("jwtToken");
+      });
+    } else if(!token){
+      setAppLoaded();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn && appLoaded) {
+      navigate("/");
+    }
+  }, [isLoggedIn, appLoaded, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8080/account/login', {
-        username,
-        password,
-      });
-
-      const { token } = response.data.result;
-
-      localStorage.setItem('jwtToken', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-      navigate('/');
-    } catch (err) {
-      const error = err as AxiosError;
-
-      const msg =  error.message 
-        ?? 'Login failed. Please try again.';
-
-      setError(msg);
-    } finally {
-      setLoading(false);
+      await login(request);
+    } catch {
+      //
     }
   };
 
+  if (loadingInitial || !appLoaded) {
+    return <LoadingComponent content="Loading application..." />;
+  }
   return (
     <Container text className="mt-5">
       <Segment raised padded="very">
@@ -50,15 +72,21 @@ const LoginPage: React.FC = () => {
           OMS Login
         </Header>
 
-        <Form onSubmit={handleSubmit} loading={loading} error={!!error}>
+        <Form
+          onSubmit={handleSubmit}
+          loading={loadingInitial}
+          error={!!storeError}
+        >
           <Form.Input
             fluid
             icon="user"
             iconPosition="left"
-            label={<label style={{ textAlign: 'left' }}>Username</label>}
+            label={<label style={{ textAlign: "left" }}>Username</label>}
             placeholder="Enter your username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={request.username}
+            onChange={(e) =>
+              setRequest((prev) => ({ ...prev, username: e.target.value }))
+            }
             required
           />
 
@@ -66,22 +94,24 @@ const LoginPage: React.FC = () => {
             fluid
             icon={
               <Icon
-                name={showPassword ? 'eye slash' : 'eye'}
+                name={showPassword ? "eye slash" : "eye"}
                 link
                 onClick={() => setShowPassword(!showPassword)}
               />
             }
             iconPosition="left"
-            label={<label style={{ textAlign: 'left' }}>Password</label>}
-            type={showPassword ? 'text' : 'password'}
+            label={<label style={{ textAlign: "left" }}>Password</label>}
+            type={showPassword ? "text" : "password"}
             placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={request?.password}
+            onChange={(e) =>
+              setRequest((prev) => ({ ...prev, password: e.target.value }))
+            }
             required
           />
 
-          {error && (
-            <Message error header="Login Error" content={error} />
+          {storeError && (
+            <Message error header="Login Error" content={storeError} />
           )}
 
           <Button
@@ -89,8 +119,8 @@ const LoginPage: React.FC = () => {
             primary
             size="large"
             type="submit"
-            loading={loading}
-            disabled={loading}
+            loading={loadingInitial}
+            disabled={loadingInitial}
           >
             Login
           </Button>
@@ -98,6 +128,6 @@ const LoginPage: React.FC = () => {
       </Segment>
     </Container>
   );
-};
+})
 
 export default LoginPage;
