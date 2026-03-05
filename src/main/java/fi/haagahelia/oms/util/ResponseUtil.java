@@ -10,6 +10,10 @@ public final class ResponseUtil {
 
     }
 
+    public static <T> ResponseEntity<ApiResponseDto<T>> handleResult(T data) {
+        return handleResult(Result.success(data), HttpStatus.OK);
+    }
+
     public static <T> ResponseEntity<ApiResponseDto<T>> handleResult(Result<T> result) {
         return handleResult(result, HttpStatus.OK);
     }

@@ -7,9 +7,13 @@ import fi.haagahelia.oms.dto.Result;
 import fi.haagahelia.oms.repository.UserRepository;
 import fi.haagahelia.oms.util.SecurityUtil;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -64,6 +68,14 @@ public class AccountService {
         return Result.success(AccountDto.from(user));
     }
 
+    @Transactional
+    public void saveRefreshToken(String refreshToken, UserDetails userDetails, Long refreshExpirationMs) {
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+        user.setRefreshToken(passwordEncoder.encode(refreshToken)); // hash it!
+        user.setRefreshTokenExpiryDate(new Date(System.currentTimeMillis() + refreshExpirationMs));
+        userRepository.save(user);
+    }
+
     public Result<AccountDto> getCurrentAccount() {
         if (!SecurityUtil.isAuthenticated()) {
             return Result.failure("User not authenticated");
@@ -73,6 +85,14 @@ public class AccountService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return Result.success(AccountDto.from(user));
+    }
+
+    public Optional<User> findByRefreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return Optional.empty();
+        }
+        String hashedRefreshToken = passwordEncoder.encode(refreshToken);
+        return userRepository.findByRefreshToken(hashedRefreshToken);
     }
 
 }

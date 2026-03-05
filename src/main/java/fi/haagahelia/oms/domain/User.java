@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Setter
 @Getter
@@ -45,6 +46,12 @@ public class User {
 
     @Column
     private LocalDateTime updatedAt;
+
+    @Column(nullable = true)
+    private String refreshToken;
+
+    @Column(nullable = true)
+    private Date refreshTokenExpiryDate;
 
     public User(String username, String fullname, String email, String password, String role, boolean enabled, boolean defaultPassword) {
         this.username = username;
