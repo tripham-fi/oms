@@ -37,9 +37,7 @@ const LoginPage = observer(() => {
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
     if (token && !isLoggedIn && !loadingInitial) {
-      setAccount().catch(() => {
-        localStorage.removeItem("jwtToken");
-      });
+      setAccount();
     } else if(!token){
       setAppLoaded();
     }

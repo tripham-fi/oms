@@ -4,11 +4,19 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
-import type { ApiErrorResponse, ApiResponse } from "../constants/type";
+import type {
+  ApiErrorResponse,
+  ApiResponse,
+} from "../constants/type";
 import type { loginRequest } from "../constants/RequestType";
-import type { CurrentAccountResult, LoginResult, UserListResult } from "../constants/ResponseType";
+import type {
+  CurrentAccountResult,
+  LoginResult,
+  UserListResult,
+} from "../constants/ResponseType";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL as string || "http://localhost:8080";
+const API_BASE_URL =
+  (import.meta.env.VITE_API_URL as string) || "http://localhost:8080";
 const responseBody = <T>(response: AxiosResponse<T>) => response.data;
 
 const axiosInstance = axios.create({
@@ -22,12 +30,10 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("jwtToken");
-
     if (token) {
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => Promise.reject(error),
@@ -40,9 +46,9 @@ axiosInstance.interceptors.response.use(
     }
     return response;
   },
-  async (error: AxiosError<ApiErrorResponse>) => {
+  (error: AxiosError<ApiErrorResponse>) => {
     const { response } = error;
-
+    
     if (!response) {
       return Promise.reject({
         message: "Network error. Please check your connection.",
@@ -51,47 +57,30 @@ axiosInstance.interceptors.response.use(
     }
 
     const { status, data } = response;
-    let message = "Something went wrong. Please try again.";
+    let message = data?.errors?.join(", ");
 
-    switch (status) {
-      case 401:
-        localStorage.removeItem("jwtToken");
-        window.location.href = "/login";
-        message = "Session expired. Please log in again.";
-        break;
+    if (data?.errors?.length) {
+      message = data.errors.join(", ");
+    } else if (status === 401) {
+      message = "Unauthorized. Please log in again.";
+    } else if (status === 403) {
+      message = "You do not have permission to access this resource.";
+    } else if (status === 400) {
+      message = "Bad request.";
+    } else if (status === 500) {
+      message = "Internal server error. Please try again later.";
+    }
 
-      case 403:
-        message = "You do not have permission to access this resource.";
-        break;
-
-      case 400:
-        if (data?.errors && data.errors.length > 0) {
-          message = data.errors.join(", ");
-        } else {
-          message = "Bad request";
-        }
-        break;
-
-      case 500:
-        message = "Internal server error. Please try again later.";
-        break;
-
-      default:
-        if (data?.errors && data.errors.length > 0) {
-          message = data.errors.join(", ");
-        } else {
-          message = error.message || message;
-        }
-        break;
+    if (status === 401 && error.config?.url !== "/account/login") {
+      localStorage.removeItem("jwtToken");
     }
 
     return Promise.reject({ message, status });
-  },
+  }
 );
 
 const request = {
-  get: <T>(url: string, config?: AxiosRequestConfig) =>
-    axiosInstance.get<T>(url, config).then(responseBody),
+  get: <T>(url: string, config?: AxiosRequestConfig) => axiosInstance.get<T>(url, config).then(responseBody),
 
   post: <T>(url: string, body?: unknown, config?: AxiosRequestConfig) =>
     axiosInstance.post<T>(url, body, config).then(responseBody),
@@ -104,18 +93,22 @@ const request = {
 };
 
 export const account = {
-  login: (body: loginRequest) => request.post<ApiResponse<LoginResult>>('/account/login', body),
-  current: () => request.get<ApiResponse<CurrentAccountResult>>('/account/current'),
-  resetPassword: (newpwd: string) => request.put<ApiResponse<CurrentAccountResult>>("/account/reset-password", {newPassword: newpwd})
+  login: (body: loginRequest) =>
+    request.post<ApiResponse<LoginResult>>("/account/login", body),
+  current: () =>
+    request.get<ApiResponse<CurrentAccountResult>>("/account/current"),
+  resetPassword: (newpwd: string) =>
+    request.put<ApiResponse<CurrentAccountResult>>("/account/reset-password", {
+      newPassword: newpwd,
+    }),
 };
 
 export const user = {
-    list: () => request.get<ApiResponse<UserListResult>>("/users/list")
-}
-
+  list: () => request.get<ApiResponse<UserListResult>>("/users/list"),
+};
 
 const consumer = {
-  account
+  account,
 };
 
 export default consumer;

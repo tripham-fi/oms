@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -18,16 +17,10 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.refresh.secret}")
-    private String refreshSecret;
-
     @Getter
     @Value("${jwt.expiration-ms}")
     private long expirationMs;
 
-    @Getter
-    @Value("${jwt.refresh.expiration-ms}") // 604800000 ms = 7 days
-    private long refreshExpirationMs;
 
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
@@ -41,27 +34,9 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + refreshExpirationMs))
-                .signWith(Keys.hmacShaKeyFor(refreshSecret.getBytes()))
-                .compact();
-    }
-
     public String extractUsername(String token) {
         return Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
-
-    private String extractUsernameFromRefresh(String token) {
-        return Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(refreshSecret.getBytes()))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
@@ -77,28 +52,9 @@ public class JwtService {
         }
     }
 
-    public boolean isRefreshTokenValid(String token, UserDetails userDetails) {
-        try {
-            final String username = extractUsernameFromRefresh(token);
-            return username.equals(userDetails.getUsername()) && !isRefreshTokenExpired(token);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     private boolean isTokenExpired(String token) {
         return Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration()
-                .before(new Date());
-    }
-
-    private boolean isRefreshTokenExpired(String token) {
-        return Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(refreshSecret.getBytes()))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()

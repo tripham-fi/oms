@@ -23,8 +23,7 @@ const ChangePasswordFirstLoginModal = observer(() => {
   };
 
   const {
-    accountStore: { resetPassword },
-    modalStore,
+    accountStore: { resetPassword }
   } = useStore();
   return (
     <>
@@ -40,10 +39,7 @@ const ChangePasswordFirstLoginModal = observer(() => {
           validationSchema={validationSchema}
           onSubmit={(value, { setSubmitting, setErrors }) =>
             resetPassword(value.newPassword)
-              .then(() => modalStore.closeModal())
-              .catch((err) => {
-                setErrors({ error: err.message || "Failed to reset password" });
-              })
+              .catch((err) => setErrors({ error: err.message || "Failed to reset password" }))
               .finally(() => setSubmitting(false))
           }
         >

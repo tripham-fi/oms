@@ -2,6 +2,7 @@ import { makeAutoObservable, reaction, runInAction } from "mobx";
 import type { CurrentAccountResult } from "../constants/ResponseType";
 import consumer from "./consumer";
 import type { loginRequest } from "../constants/RequestType";
+import { store } from "./store";
 
 export default class AccountStore {
   //   bookingRegistry = new Map<number, unknown>();
@@ -51,8 +52,9 @@ export default class AccountStore {
       runInAction(() => (this.account = acc.result));
     } catch (err) {
       runInAction(() => {
+        localStorage.removeItem("jwtToken")
         this.error =
-          err instanceof Error ? err.message : "Failed to load account";
+          err instanceof Error ? err.message : "Failed to load account or Session expired";
       });
       console.error("Failed to load current account:", err);
     } finally {
@@ -79,11 +81,18 @@ export default class AccountStore {
       runInAction(() => localStorage.setItem("jwtToken", token));
 
       await this.setAccount();
-    } catch (err) {
+    } catch (err: { message?: string; status?: number } | Error | unknown) {
       runInAction(() => {
-        this.error = err instanceof Error ? err.message : "Login failed";
+        let msg = "Login failed";
+
+        if (err && typeof err === "object" && "message" in err) {
+          msg = (err as { message: string }).message;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
+
+        this.error = msg;
       });
-      console.error("Login error:", err);
       throw err;
     } finally {
       runInAction(() => {
@@ -93,30 +102,13 @@ export default class AccountStore {
   };
 
   logout = async () => {
-    this.setLoadingInitial(true);
-    this.error = null;
-    try {
-      localStorage.removeItem("jwtToken")
-
-      runInAction(() => {
-        this.account = null;
-        this.appLoaded = false;
-      });
-
-      window.location.href = "/login"
-    } catch (err) {
-      console.error("Logout failed:", err)
-
-      localStorage.removeItem("jwtToken")
-      runInAction(() => {
-        this.account = null;
-      });
-      window.location.href = "/login"
-    } finally {
-      runInAction(() => {
-        this.setLoadingInitial(false)
-      })
-    }
+    runInAction(() => {
+      localStorage.removeItem("jwtToken");
+      this.account = null;
+      this.appLoaded = false;
+      this.error = null;
+    });
+    window.location.href = "/login"
   };
 
   resetPassword = async (newpwd: string) => {
@@ -124,7 +116,11 @@ export default class AccountStore {
 
     try {
       const res = await consumer.account.resetPassword(newpwd)
-      runInAction(() => (this.account = res.result));
+      runInAction(() => {
+        this.account = res.result
+        store.modalStore.modal.firstLogin = false;
+        store.modalStore.closeModal();
+      });
       return res;
     }catch (err) {
       runInAction(() => {

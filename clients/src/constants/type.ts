@@ -13,5 +13,11 @@ export type ApiErrorResponse = {
   errors: string[];
 }
 
+export type QueuePromise = {
+  resolve: (value: string) => void;
+  reject: (reason?: unknown) => void;
+}
+
+
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 

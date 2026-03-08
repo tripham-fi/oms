@@ -1,6 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
 import type { UserRole } from "../constants/type";
-import { useMemo } from "react";
 import { jwtDecode } from "jwt-decode";
 
 interface JwtPayload {
@@ -33,11 +32,6 @@ const getCurrentUser = (): AuthUser | null => {
       ? (rawRole.substring(5) as UserRole)
       : (rawRole as UserRole);
 
-    if (!role) {
-      localStorage.removeItem("jwtToken");
-      return null;
-    }
-
     return {
       username: decoded.sub,
       role,
@@ -58,7 +52,7 @@ const CustomRoute = ({
   requiredRole,
   redirectTo = "/login",
 }: CustomRouteProps = {}) => {
-  const user = useMemo(() => getCurrentUser(), []);
+  const user = getCurrentUser();
 
   // Not logged in → redirect
   if (!user) {

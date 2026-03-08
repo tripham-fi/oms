@@ -62,18 +62,11 @@ public class AccountService {
         }
 
         user.setPassword(passwordEncoder.encode(newpassword));
+        user.setDefaultPassword(false);
 
         userRepository.save(user);
 
         return Result.success(AccountDto.from(user));
-    }
-
-    @Transactional
-    public void saveRefreshToken(String refreshToken, UserDetails userDetails, Long refreshExpirationMs) {
-        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        user.setRefreshToken(passwordEncoder.encode(refreshToken)); // hash it!
-        user.setRefreshTokenExpiryDate(new Date(System.currentTimeMillis() + refreshExpirationMs));
-        userRepository.save(user);
     }
 
     public Result<AccountDto> getCurrentAccount() {
@@ -85,14 +78,6 @@ public class AccountService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return Result.success(AccountDto.from(user));
-    }
-
-    public Optional<User> findByRefreshToken(String refreshToken) {
-        if (refreshToken == null || refreshToken.isBlank()) {
-            return Optional.empty();
-        }
-        String hashedRefreshToken = passwordEncoder.encode(refreshToken);
-        return userRepository.findByRefreshToken(hashedRefreshToken);
     }
 
 }

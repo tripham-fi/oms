@@ -26,9 +26,8 @@ const App = observer(() => {
       isLoggedIn,
       setAccount,
       appLoaded,
-      loadingInitial,
       isFirstLogin,
-      setAppLoaded,
+      setAppLoaded
     },
     modalStore,
   } = useStore();
@@ -36,30 +35,20 @@ const App = observer(() => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("jwtToken");
-
-    if (token && !isLoggedIn && !loadingInitial) {
-      setAccount().catch(() => {
-        localStorage.removeItem("jwtToken");
-      });
-    } else if (!token) {
+    if (isLoggedIn) {
+      setAccount()
+        .finally(() => setAppLoaded());
+    } else {
       setAppLoaded();
+      navigate("/login");
     }
-  }, []);
+  }, [isLoggedIn, setAccount, setAppLoaded]);
 
-  useEffect(() => {
-    if (isLoggedIn && appLoaded) {
-      navigate("/");
-    }
-  }, [isLoggedIn, appLoaded, navigate]);
+  if (isLoggedIn && appLoaded && isFirstLogin) {
+    modalStore.openModal(<ChangePasswordFirstLoginModal />, "md", true);
+  }
 
-  useEffect(() => {
-    if (isLoggedIn && appLoaded && isFirstLogin) {
-      modalStore.openModal(<ChangePasswordFirstLoginModal />, "md", true);
-    }
-  }, [isLoggedIn, appLoaded, isFirstLogin, modalStore]);
-
-  if (loadingInitial || !appLoaded) {
+  if (!appLoaded) {
     return <LoadingComponent content="Loading App..." />;
   }
 
