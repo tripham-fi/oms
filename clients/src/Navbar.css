@@ -1,0 +1,16 @@
+.ui.inverted.menu {
+  border-radius: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.ui.inverted.menu .item.header {
+  font-weight: bold;
+}
+
+.ui.dropdown .menu {
+  min-width: 140px;
+}
+
+.ui.top.right.pointing.dropdown .menu {
+  margin: .5em 0 0 !important;
+}

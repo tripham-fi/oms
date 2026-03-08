@@ -1,7 +1,10 @@
 import { makeAutoObservable, reaction, runInAction } from "mobx";
 import type { CurrentAccountResult } from "../constants/ResponseType";
 import consumer from "./consumer";
-import type { loginRequest } from "../constants/RequestType";
+import type {
+  changePasswordRequest,
+  loginRequest,
+} from "../constants/RequestType";
 import { store } from "./store";
 
 export default class AccountStore {
@@ -52,9 +55,11 @@ export default class AccountStore {
       runInAction(() => (this.account = acc.result));
     } catch (err) {
       runInAction(() => {
-        localStorage.removeItem("jwtToken")
+        localStorage.removeItem("jwtToken");
         this.error =
-          err instanceof Error ? err.message : "Failed to load account or Session expired";
+          err instanceof Error
+            ? err.message
+            : "Failed to load account or Session expired";
       });
       console.error("Failed to load current account:", err);
     } finally {
@@ -64,8 +69,6 @@ export default class AccountStore {
       });
     }
   };
-
-  
 
   login = async (request: loginRequest) => {
     this.setLoadingInitial(true);
@@ -108,21 +111,21 @@ export default class AccountStore {
       this.appLoaded = false;
       this.error = null;
     });
-    window.location.href = "/login"
+    window.location.href = "/login";
   };
 
   resetPassword = async (newpwd: string) => {
-    this.setLoadingInitial(true)
+    this.setLoadingInitial(true);
 
     try {
-      const res = await consumer.account.resetPassword(newpwd)
+      const res = await consumer.account.resetPassword(newpwd);
       runInAction(() => {
-        this.account = res.result
+        this.account = res.result;
         store.modalStore.modal.firstLogin = false;
         store.modalStore.closeModal();
       });
       return res;
-    }catch (err) {
+    } catch (err) {
       runInAction(() => {
         this.error =
           err instanceof Error ? err.message : "Failed to reset password";
@@ -134,7 +137,32 @@ export default class AccountStore {
         this.setLoadingInitial(false);
       });
     }
-  }
+  };
+
+  changePassword = async (changePwdRequest: changePasswordRequest) => {
+    this.setLoadingInitial(true);
+
+    try {
+      const res = await consumer.account.changePassword(changePwdRequest);
+      runInAction(() => {
+        this.account = res.result;
+        store.modalStore.modal.firstLogin = false;
+        store.modalStore.closeModal();
+      });
+      return res;
+    } catch (err) {
+      runInAction(() => {
+        this.error =
+          err instanceof Error ? err.message : "Failed to reset password";
+      });
+      console.error("Reset password failed:", err);
+      throw err;
+    } finally {
+      runInAction(() => {
+        this.setLoadingInitial(false);
+      });
+    }
+  };
 
   setLoadingInitial = (state: boolean) => {
     this.loadingInitial = state;

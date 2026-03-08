@@ -10,6 +10,7 @@ import ModalContainer from "./components/ModalContainer";
 import ChangePasswordFirstLoginModal from "./components/modal/ChangePasswordFirstLoginModal";
 import { useEffect } from "react";
 import LoadingComponent from "./components/LoadingComponent";
+import Navbar from "./Navbar";
 
 const Home = () => (
   <div className="p-5 text-center">
@@ -55,6 +56,7 @@ const App = observer(() => {
   return (
     <div>
       <ModalContainer />
+      {isLoggedIn && <Navbar />}
       <Container fluid className="p-0 min-h-screen">
         <Routes>
           <Route path="/login" element={<LoginPage />} />

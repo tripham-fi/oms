@@ -59,7 +59,18 @@
   gap: 8px;
 }
 
+#currentpwdField {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
 #newpwdField > * {
+  padding: 0;
+}
+
+#currentpwdField > * {
   padding: 0;
 }
 
@@ -67,24 +78,48 @@
   width: 100%;
 }
 
+#currentpwdLabel > .label {
+  width: 100%;
+}
+
 #newpwd {
   position: relative;
   display: flex;
   flex-direction: column;
+
+  input {
+    width: 100%;
+  }
 }
 
-#newpwd > input {
-  width: 100%;
+#currentpwd {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  input {
+    width: 100%;
+  }
 }
 
 #newpwdIcon {
   display: flex;
   align-items: center;
   height: 25px;
+
+  :hover{
+    color: #00fcb6;
+  }
 }
 
-#newpwdIcon > i:hover {
-  color: #00fcb6;
+#currentpwdIcon {
+  display: flex;
+  align-items: center;
+  height: 25px;
+
+  :hover{
+    color: #00fcb6;
+  }
 }
 
 @media (max-width: 600px) {

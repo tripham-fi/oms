@@ -4,11 +4,11 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
+import type { ApiErrorResponse, ApiResponse } from "../constants/type";
 import type {
-  ApiErrorResponse,
-  ApiResponse,
-} from "../constants/type";
-import type { loginRequest } from "../constants/RequestType";
+  changePasswordRequest,
+  loginRequest,
+} from "../constants/RequestType";
 import type {
   CurrentAccountResult,
   LoginResult,
@@ -76,11 +76,12 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject({ message, status });
-  }
+  },
 );
 
 const request = {
-  get: <T>(url: string, config?: AxiosRequestConfig) => axiosInstance.get<T>(url, config).then(responseBody),
+  get: <T>(url: string, config?: AxiosRequestConfig) =>
+    axiosInstance.get<T>(url, config).then(responseBody),
 
   post: <T>(url: string, body?: unknown, config?: AxiosRequestConfig) =>
     axiosInstance.post<T>(url, body, config).then(responseBody),
@@ -101,6 +102,11 @@ export const account = {
     request.put<ApiResponse<CurrentAccountResult>>("/account/reset-password", {
       newPassword: newpwd,
     }),
+  changePassword: (changePasswordRequest: changePasswordRequest) =>
+    request.put<ApiResponse<CurrentAccountResult>>(
+      "/account/change-password",
+      changePasswordRequest,
+    ),
 };
 
 export const user = {
