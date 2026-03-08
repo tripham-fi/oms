@@ -1,0 +1,109 @@
+package fi.haagahelia.oms.api;
+
+
+import fi.haagahelia.oms.dto.Account.AccountDto;
+import fi.haagahelia.oms.dto.Account.LoginDto;
+import fi.haagahelia.oms.dto.Account.ResetPasswordDto;
+import fi.haagahelia.oms.dto.ApiResponseDto;
+import fi.haagahelia.oms.dto.Account.ChangePasswordDto;
+import fi.haagahelia.oms.dto.Result;
+import fi.haagahelia.oms.service.AccountService;
+import fi.haagahelia.oms.service.JwtService;
+import fi.haagahelia.oms.util.ResponseUtil;
+import fi.haagahelia.oms.util.SecurityUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@Tag(name = "Account", description = "get account info, change password, reset password and check first login")
+@RestController
+@RequestMapping("/account")
+public class AccountController {
+    private final AccountService accountService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+
+    public AccountController(AccountService accountService,
+                             AuthenticationManager authenticationManager,
+                             JwtService jwtService) {
+        this.accountService = accountService;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+    }
+
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    public ResponseEntity<ApiResponseDto<Map<String, Object>>> login(
+            @RequestBody LoginDto input) {
+
+        String username = input.getUsername();
+        String password = input.getPassword();
+
+        if (username == null || password == null) {
+            return ResponseUtil.error("Username and password are required", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password));
+
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Map<String, Object> data = createAccessTokenResponseData(userDetails);
+
+            return ResponseEntity.ok(ApiResponseDto.success(data));
+
+        } catch (BadCredentialsException e) {
+            return ResponseUtil.error("Invalid username or password", HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return ResponseUtil.error("Login failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/current", method = RequestMethod.GET)
+    public ResponseEntity<ApiResponseDto<AccountDto>> getCurrentUser() {
+        Result<AccountDto> result = accountService.getCurrentAccount();
+        return ResponseUtil.handleResult(result);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/change-password", method = RequestMethod.PUT)
+    public ResponseEntity<ApiResponseDto<AccountDto>> changePassword(
+            @Valid @RequestBody ChangePasswordDto dto) {
+        String username = SecurityUtil.getCurrentUsernameOrThrow();
+        Result<AccountDto> result = accountService.changePassword(username, dto);
+
+        return ResponseUtil.handleResult(result);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/reset-password", method = RequestMethod.PUT)
+    public ResponseEntity<ApiResponseDto<AccountDto>> resetPassword(
+            @Valid @RequestBody ResetPasswordDto dto) {
+        String username = SecurityUtil.getCurrentUsernameOrThrow();
+
+        Result<AccountDto> result = accountService.resetPassword(username, dto.getNewPassword());
+
+        return ResponseUtil.handleResult(result);
+    }
+
+    private Map<String, Object> createAccessTokenResponseData(UserDetails userDetails) {
+        String newToken = jwtService.generateToken(userDetails);
+        long expiresInSeconds = jwtService.getExpirationMs() / 1000;
+        return Map.of(
+                "token", newToken,
+                "tokenType", "Bearer",
+                "expiresIn", expiresInSeconds,
+                "username", userDetails.getUsername()
+        );
+    }
+}

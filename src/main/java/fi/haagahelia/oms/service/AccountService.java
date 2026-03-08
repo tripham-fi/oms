@@ -1,15 +1,19 @@
 package fi.haagahelia.oms.service;
 
 import fi.haagahelia.oms.domain.User;
-import fi.haagahelia.oms.dto.AccountDto;
-import fi.haagahelia.oms.dto.ChangePasswordDto;
+import fi.haagahelia.oms.dto.Account.AccountDto;
+import fi.haagahelia.oms.dto.Account.ChangePasswordDto;
 import fi.haagahelia.oms.dto.Result;
 import fi.haagahelia.oms.repository.UserRepository;
 import fi.haagahelia.oms.util.SecurityUtil;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -35,7 +39,6 @@ public class AccountService {
         }
 
         user.setPassword(passwordEncoder.encode(input.getNewPassword()));
-        user.setDefaultPassword(false);
 
         userRepository.save(user);
 
@@ -43,15 +46,24 @@ public class AccountService {
     }
 
     @Transactional
-    public Result<AccountDto> markFirstLoginCompleted(String username) {
+    public Result<AccountDto> resetPassword(String username, String newpassword) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
         if (!user.isDefaultPassword()) {
-            return Result.success(AccountDto.from(user));
+            return Result.failure("Password reset only allowed on first login");
         }
 
+        if (newpassword.length() < 8) {
+            return Result.failure("New password must be at least 8 characters");
+        }
+
+        if (passwordEncoder.matches(newpassword, user.getPassword())) {
+            return Result.failure("New password cannot be the same as the current one");
+        }
+
+        user.setPassword(passwordEncoder.encode(newpassword));
         user.setDefaultPassword(false);
+
         userRepository.save(user);
 
         return Result.success(AccountDto.from(user));

@@ -1,4 +1,4 @@
-package fi.haagahelia.oms.web;
+package fi.haagahelia.oms.api;
 
 import fi.haagahelia.oms.dto.ApiResponseDto;
 import fi.haagahelia.oms.dto.RegisterDto;
@@ -41,12 +41,6 @@ public class UserController {
         } catch (Exception e) {
             return ResponseUtil.badRequest(e.getMessage());
         }
-    }
-
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public ResponseEntity<ApiResponseDto<String>> login() {
-        // TODO: JWT TOKEN IMPLEMENT NEEDED
-        return ResponseUtil.success("Login successful (placeholder)");
     }
 
     @Operation(

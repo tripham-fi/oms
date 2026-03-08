@@ -39,6 +39,7 @@ public class OmsApplication {
 
 				// Admin
 				User admin = new User();
+				admin.setFullname("Administrator");
 				admin.setUsername("admin");
 				admin.setEmail("admin@example.com");
 				admin.setPassword(passwordEncoder.encode("admin123"));
@@ -48,6 +49,7 @@ public class OmsApplication {
 
 				// Super Admin
 				User superAdmin = new User();
+				superAdmin.setFullname("Super Administrator");
 				superAdmin.setUsername("supa");
 				superAdmin.setEmail("superadmin@example.com");
 				superAdmin.setPassword(passwordEncoder.encode("super123"));
