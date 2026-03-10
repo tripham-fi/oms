@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Setter
 @Getter
@@ -23,10 +23,16 @@ public class User {
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, length = 100)
     private String fullname;
 
-    @Column(nullable = false, unique = true, length = 120)
+    @Column(nullable = false, length = 100)
+    private String firstName;
+
+    @Column(nullable = false, length = 100)
+    private String lastName;
+
+    @Column(unique = true, length = 120)
     private String email;
 
     @Column(nullable = false, length = 255)
@@ -41,26 +47,31 @@ public class User {
     @Column(nullable = false, length = 20)
     private String role;
 
+    @Column(nullable = false)
+    public LocalDate dateOfBirth;
+
     @Column(updatable = false)
     public LocalDateTime createdAt = LocalDateTime.now();
 
     @Column
     private LocalDateTime updatedAt;
 
-    public User(String username, String fullname, String email, String password, String role, boolean enabled, boolean defaultPassword) {
+    public User(String username, String email, String password, String role, boolean enabled, boolean defaultPassword, String firstName, String lastName) {
         this.username = username;
-        this.fullname = fullname;
         this.email = email;
         this.password = password;
         this.role = role;
         this.enabled = enabled;
         this.defaultPassword = defaultPassword;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        fullname = this.getFirstName() + " " + this.getLastName();
     }
 
     @PreUpdate
