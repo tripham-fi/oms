@@ -1,8 +1,10 @@
 package fi.haagahelia.oms.service;
 
+import fi.haagahelia.oms.constant.Role;
 import fi.haagahelia.oms.domain.User;
 import fi.haagahelia.oms.dto.*;
 import fi.haagahelia.oms.dto.User.UserCreateDto;
+import fi.haagahelia.oms.dto.User.UserUpdateDto;
 import fi.haagahelia.oms.repository.UserRepository;
 import fi.haagahelia.oms.util.CommonUtil;
 import jakarta.transaction.Transactional;
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +50,7 @@ public class UserService {
 
     @Transactional
     public Result<UserDto> createUser(UserCreateDto dto) throws Exception{
-        if (!Set.of("EMPLOYEE", "ADMIN", "SUPER_ADMIN").contains(dto.getRole())) {
+        if (!Role.isValid(dto.getRole())) {
             return Result.failure("Invalid role. Allowed: EMPLOYEE, ADMIN, SUPER_ADMIN");
         }
 
@@ -56,7 +58,7 @@ public class UserService {
             return Result.failure("Email already exists");
         }
 
-        String generatedUserName = CommonUtil.generateUserName(dto.firstName, dto.lastName);
+        String generatedUserName = CommonUtil.generateUserName(dto.getFirstName(), dto.getLastName());
         String finalUsername;
 
         try {
@@ -84,6 +86,49 @@ public class UserService {
         return Result.success(UserDto.from(user));
     }
 
+    @Transactional
+    public Result<UserDto> updateUser(UserUpdateDto dto) {
+        User existUser = userRepository.findById(dto.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User with id: " +  dto.getId() + " does not found"));
+
+        // TODO Ensure that only companies from the same location can update this user
+
+        if(!Role.isValid(dto.getRole())) {
+            return Result.failure("Invalid role. Allowed: EMPLOYEE, ADMIN, SUPER_ADMIN");
+        }
+
+        try {
+            existUser.setDateOfBirth(dto.getDob());
+            existUser.setRole(dto.getRole());
+            existUser = userRepository.save(existUser);
+        } catch (DataIntegrityViolationException e) {
+            return Result.failure("Failed to update user, possible data conflict. Please try again. message:" + e.getMessage());
+        }
+
+        return Result.success(UserDto.from(existUser));
+    }
+
+    @Transactional
+    public Result<String> disableUser(Long id) {
+        User existUser = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User with id: " +  id + " does not found"));
+
+        if (Role.SUPER_ADMIN.name().equalsIgnoreCase(existUser.getRole())) {
+            return Result.failure("SUPER ADMIN users cannot be modified");
+        }
+
+        try {
+            existUser.setEnabled(false);
+            userRepository.save(existUser);
+        } catch (DataIntegrityViolationException e) {
+            return Result.failure("Failed to disable user, possible data conflict. Please try again. message:" + e.getMessage());
+        }
+
+        return Result.success("user " + existUser.getUsername() + " is disabled");
+    }
+
+    // TODO merge create and update service into save service
+
     public Result<UserDto> findByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -91,7 +136,7 @@ public class UserService {
     }
 
     public Result<List<UserDto>> getUsers() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findByEnabledTrue();
         List<UserDto> dtos = users.stream()
                 .map(UserDto::from)
                 .collect(Collectors.toList());

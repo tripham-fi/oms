@@ -4,6 +4,7 @@ import fi.haagahelia.oms.dto.ApiResponseDto;
 import fi.haagahelia.oms.dto.RegisterDto;
 import fi.haagahelia.oms.dto.Result;
 import fi.haagahelia.oms.dto.User.UserCreateDto;
+import fi.haagahelia.oms.dto.User.UserUpdateDto;
 import fi.haagahelia.oms.dto.UserDto;
 import fi.haagahelia.oms.service.UserService;
 import fi.haagahelia.oms.util.ResponseUtil;
@@ -48,6 +49,39 @@ public class UserController {
         } catch (Exception e) {
             return ResponseUtil.badRequest(e.getMessage());
         }
+    }
+
+    @Operation(
+            summary = "Update existing user (admin and super admin only)",
+            description = "Update an existing user with id"
+    )
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @RequestMapping(value = "", method = RequestMethod.PUT)
+    public ResponseEntity<ApiResponseDto<UserDto>> updateExistUser(@Valid @RequestBody UserUpdateDto dto) {
+        try {
+            // TODO: Implement location and admin role assign only for super_admin
+            Result<UserDto> result = userService.updateUser(dto);
+
+            if(result.isSuccess()) {
+                UserDto created = result.value();
+                return ResponseUtil.created(created);
+            }
+
+            return ResponseUtil.badRequest(result.error());
+        } catch (Exception e) {
+            return ResponseUtil.badRequest(e.getMessage());
+        }
+    }
+
+    @Operation(
+            summary = "Disable existing user except super admin user (admin and super admin only)",
+            description = "Disable an existing user with id"
+    )
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity<ApiResponseDto<String>> deleteUser(@PathVariable Long id) {
+        Result<String> result = userService.disableUser(id);
+        return ResponseUtil.handleResult(result);
     }
 
     @Operation(
