@@ -59,7 +59,6 @@ public class UserController {
     @RequestMapping(value = "", method = RequestMethod.PUT)
     public ResponseEntity<ApiResponseDto<UserDto>> updateExistUser(@Valid @RequestBody UserUpdateDto dto) {
         try {
-            // TODO: Implement location and admin role assign only for super_admin
             Result<UserDto> result = userService.updateUser(dto);
 
             if(result.isSuccess()) {
@@ -89,7 +88,7 @@ public class UserController {
             description = "Returns paginated list of users. Admin and Super Admin only."
     )
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    @RequestMapping(value = "", method = RequestMethod.GET)
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
     public ResponseEntity<ApiResponseDto<List<UserDto>>> getUserList() {
         Result<List<UserDto>> users = userService.getUsers();
         return ResponseUtil.handleResult(users);

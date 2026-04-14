@@ -91,8 +91,6 @@ public class UserService {
         User existUser = userRepository.findById(dto.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User with id: " +  dto.getId() + " does not found"));
 
-        // TODO Ensure that only companies from the same location can update this user
-
         if(!Role.isValid(dto.getRole())) {
             return Result.failure("Invalid role. Allowed: EMPLOYEE, ADMIN, SUPER_ADMIN");
         }

@@ -1,15 +1,18 @@
 import { createContext, useContext } from "react";
 import AccountStore from "./accountStore";
 import ModalStore from "./modalStore";
+import UserStore from "./userStore";
 
 export type RootStore = {
   accountStore: AccountStore;
+  userStore: UserStore;
   modalStore: ModalStore
 }
 
 export const store: RootStore = {
   accountStore: new AccountStore(),
-  modalStore: new ModalStore(),
+  userStore: new UserStore(),
+  modalStore: new ModalStore()
 };
 
 export const StoreContext = createContext<RootStore | undefined>(undefined);
