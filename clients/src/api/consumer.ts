@@ -12,7 +12,7 @@ import type {
 import type {
   CurrentAccountResult,
   LoginResult,
-  UserListResult,
+  UserListItem,
 } from "../constants/ResponseType";
 
 const API_BASE_URL =
@@ -110,11 +110,14 @@ export const account = {
 };
 
 export const user = {
-  list: () => request.get<ApiResponse<UserListResult>>("/users/list"),
+  list: () => request.get<ApiResponse<UserListItem[]>>("/users/list"),
+  create: (body: FormData) => request.post<ApiResponse<UserListItem>>("/users", body),
+  disable: (id: number) => request.delete<ApiResponse<string>>(`/users/${id}`)
 };
 
 const consumer = {
   account,
+  user
 };
 
 export default consumer;

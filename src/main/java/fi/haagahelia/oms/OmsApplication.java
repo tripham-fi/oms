@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
 
 
 @OpenAPIDefinition(
@@ -39,22 +40,24 @@ public class OmsApplication {
 
 				// Admin
 				User admin = new User();
-				admin.setFullname("Administrator");
+				admin.setFirstName("Admin");
+				admin.setLastName("User");
 				admin.setUsername("admin");
 				admin.setEmail("admin@example.com");
 				admin.setPassword(passwordEncoder.encode("admin123"));
+				admin.setDateOfBirth(LocalDate.of(1990, 1, 1));
 				admin.setRole("ADMIN");
-				admin.setEnabled(true);
 				userRepository.save(admin);
 
 				// Super Admin
 				User superAdmin = new User();
-				superAdmin.setFullname("Super Administrator");
+				superAdmin.setFirstName("Super");
+				superAdmin.setLastName("Admin");
 				superAdmin.setUsername("supa");
 				superAdmin.setEmail("superadmin@example.com");
 				superAdmin.setPassword(passwordEncoder.encode("super123"));
+				superAdmin.setDateOfBirth(LocalDate.of(1985, 5, 15));
 				superAdmin.setRole("SUPER_ADMIN");
-				superAdmin.setEnabled(true);
 				userRepository.save(superAdmin);
 
 			} else {

@@ -21,5 +21,3 @@ export type UserListItem = {
   role: string;
   enabled: boolean;
 }
-
-export type UserListResult = UserListItem[];

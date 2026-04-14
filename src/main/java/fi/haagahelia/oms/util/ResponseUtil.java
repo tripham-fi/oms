@@ -31,8 +31,7 @@ public final class ResponseUtil {
                     .body(ApiResponseDto.success(result.value()));
         }
 
-        return ResponseEntity.badRequest()
-                .body(ApiResponseDto.error(result.error()));
+        return badRequest(result.error());
     }
 
     public static <T> ResponseEntity<ApiResponseDto<T>> success(T data) {

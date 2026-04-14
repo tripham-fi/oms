@@ -3,6 +3,8 @@ package fi.haagahelia.oms.api;
 import fi.haagahelia.oms.dto.ApiResponseDto;
 import fi.haagahelia.oms.dto.RegisterDto;
 import fi.haagahelia.oms.dto.Result;
+import fi.haagahelia.oms.dto.User.UserCreateDto;
+import fi.haagahelia.oms.dto.User.UserUpdateDto;
 import fi.haagahelia.oms.dto.UserDto;
 import fi.haagahelia.oms.service.UserService;
 import fi.haagahelia.oms.util.ResponseUtil;
@@ -27,20 +29,58 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Register new user to the database",
-            description = "Automatically create new user to the database for new employee" +
-                    " username = position + employee_number (e.g SD4406)" +
-                    " password is 6 character auto-generated" +
-                    " the rest ...TBD"
+            summary = "Create new user (admin only)",
+            description = "Creates a new user with auto-generated username (based on name initials + number if needed) " +
+                    "and temporary password (username@DDMMYYYY). User must change password on first login."
     )
-    @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public ResponseEntity<ApiResponseDto<String>> register(@Valid @RequestBody RegisterDto dto) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @RequestMapping(value = "", method = RequestMethod.POST)
+    public ResponseEntity<ApiResponseDto<UserDto>> createNewUser(@Valid @RequestBody UserCreateDto dto) {
         try {
-            userService.register(dto);
-            return ResponseUtil.created("User registered successfully");
+            // TODO: Implement location and admin role assign only for super_admin
+            Result<UserDto> result = userService.createUser(dto);
+
+            if(result.isSuccess()) {
+                UserDto created = result.value();
+                return ResponseUtil.created(created);
+            }
+
+            return ResponseUtil.badRequest(result.error());
         } catch (Exception e) {
             return ResponseUtil.badRequest(e.getMessage());
         }
+    }
+
+    @Operation(
+            summary = "Update existing user (admin and super admin only)",
+            description = "Update an existing user with id"
+    )
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @RequestMapping(value = "", method = RequestMethod.PUT)
+    public ResponseEntity<ApiResponseDto<UserDto>> updateExistUser(@Valid @RequestBody UserUpdateDto dto) {
+        try {
+            Result<UserDto> result = userService.updateUser(dto);
+
+            if(result.isSuccess()) {
+                UserDto created = result.value();
+                return ResponseUtil.created(created);
+            }
+
+            return ResponseUtil.badRequest(result.error());
+        } catch (Exception e) {
+            return ResponseUtil.badRequest(e.getMessage());
+        }
+    }
+
+    @Operation(
+            summary = "Disable existing user except super admin user (admin and super admin only)",
+            description = "Disable an existing user with id"
+    )
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity<ApiResponseDto<String>> deleteUser(@PathVariable Long id) {
+        Result<String> result = userService.disableUser(id);
+        return ResponseUtil.handleResult(result);
     }
 
     @Operation(
