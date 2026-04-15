@@ -15,3 +15,11 @@ export type createUserRequest = {
     email: string,
     dob: Date
 }
+
+export type createUserPayload = {
+    firstName: string,
+    lastName: string,
+    role: string,
+    email: string,
+    dob: string
+}

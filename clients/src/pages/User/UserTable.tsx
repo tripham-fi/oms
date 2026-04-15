@@ -8,28 +8,26 @@ import {
   createColumnHelper,
   type SortingState,
 } from "@tanstack/react-table";
-import { Table, Badge, Button } from "react-bootstrap";
+import { Table } from "semantic-ui-react";
+import { Badge, Button } from "react-bootstrap";
 import { useStore } from "../../api/store";
 import LoadingComponent from "../../components/LoadingComponent";
 import type { UserListItem } from "../../constants/ResponseType";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import ConfirmDisableUser from "../../components/modal/ConfirmDisableUser";
 
 const columnHelper = createColumnHelper<UserListItem>();
 
 const UserTable = observer(() => {
   const { userStore, modalStore } = useStore();
-  const { loadingInitial } = userStore;
+  const { loadingInitial, userByNameSort } = userStore;
 
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const data = useMemo(
-    () => userStore.userByNameSort.slice(),
-    [userStore.userByNameSort],
-  );
-  
-  const handleDelete = async (id: number) => {
+  const data = useMemo(() => [...userByNameSort], [userByNameSort]);
+
+  const handleDisable = (id: number) => {
     modalStore.openModal(<ConfirmDisableUser id={id} />, "md");
   };
 
@@ -54,17 +52,16 @@ const UserTable = observer(() => {
           <Button
             variant="outline-danger"
             size="sm"
-            onClick={() => handleDelete(info.row.original.id)}
+            onClick={() => handleDisable(info.row.original.id)}
           >
             <FontAwesomeIcon icon={faTrash} />
           </Button>
         ),
       }),
     ],
-    [],
+    []
   );
 
-  // 4. Initialize Table Logic
   const table = useReactTable({
     data,
     columns,
@@ -75,17 +72,16 @@ const UserTable = observer(() => {
   });
 
   if (loadingInitial) return <LoadingComponent content="Loading users..." />;
-  if (data.length === 0)
-    return <div className="text-center mt-5">No users found.</div>;
+  if (data.length === 0) return <div className="text-center py-10">No users found.</div>;
 
   return (
-    <div className="table-responsive">
-      <Table striped bordered hover className="align-middle">
-        <thead className="table-dark">
+    <div className="overflow-x-auto">
+      <Table celled striped selectable>
+        <Table.Header>
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
+            <Table.Row key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th
+                <Table.HeaderCell
                   key={header.id}
                   onClick={
                     header.column.columnDef.id !== "actions"
@@ -93,39 +89,32 @@ const UserTable = observer(() => {
                       : undefined
                   }
                   style={{
-                    cursor:
-                      header.column.columnDef.id !== "actions"
-                        ? "pointer"
-                        : "default",
+                    cursor: header.column.columnDef.id !== "actions" ? "pointer" : "default",
                   }}
                 >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext(),
-                  )}
+                  {flexRender(header.column.columnDef.header, header.getContext())}
                   {header.column.columnDef.id !== "actions" && (
-                    <span>
-                      {{ asc: " 🔼", desc: " 🔽" }[
-                        header.column.getIsSorted() as string
-                      ] ?? null}
+                    <span className="ml-2">
+                      {{ asc: "↑", desc: "↓" }[header.column.getIsSorted() as string] ?? null}
                     </span>
                   )}
-                </th>
+                </Table.HeaderCell>
               ))}
-            </tr>
+            </Table.Row>
           ))}
-        </thead>
-        <tbody>
+        </Table.Header>
+
+        <Table.Body>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
+            <Table.Row key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id}>
+                <Table.Cell key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
+                </Table.Cell>
               ))}
-            </tr>
+            </Table.Row>
           ))}
-        </tbody>
+        </Table.Body>
       </Table>
     </div>
   );

@@ -1,10 +1,10 @@
 import { observer } from "mobx-react-lite";
 import { Button, Input } from "semantic-ui-react";
-import { NavLink } from "react-router-dom";
 import { useStore } from "../../api/store";
+import CreateUserModal from "../../components/modal/CreateUserModal";
 
 const UserHeader = observer(() => {
-  const { userStore } = useStore();
+  const { userStore, modalStore } = useStore();
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     userStore.setSearchQuery(e.target.value);
   };
@@ -23,9 +23,8 @@ const UserHeader = observer(() => {
 
       <Button
         color="red"
-        as={NavLink}
-        to="/users/create"
         icon="plus"
+        onClick={() => modalStore.openModal(<CreateUserModal />, "lg")}
       >
         Create New User
       </Button>

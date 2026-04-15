@@ -1,53 +1,63 @@
 import { observer } from "mobx-react-lite";
+import { useState } from "react";
 import { Button, ModalHeader, ModalBody, Row, Col } from "reactstrap";
 import { useStore } from "../../api/store";
 
-type confirmDisableUserProp = {
+type Props = {
   id: number;
 };
 
-const ConfirmDisableUser = observer(({ id }: confirmDisableUserProp) => {
+const ConfirmDisableUser = observer(({ id }: Props) => {
   const { modalStore, userStore } = useStore();
-  const { disableUser } = userStore;
+  const [loading, setLoading] = useState(false);
 
-  const handleLogout = () => {
-    disableUser(id);
+  const handleDisable = async () => {
+    setLoading(true);
+    await userStore.disableUser(id);
+    setLoading(false);
     modalStore.closeModal();
   };
+
+  const handleCancel = () => {
+    modalStore.closeModal();
+  };
+
   return (
-    <div>
-      <ModalHeader
-        className="modal-header-popupModal"
-        toggle={modalStore.closeModal}
-      >
-        Are you sure?
+    <>
+      <ModalHeader className="modal-header-popupModal" toggle={modalStore.closeModal}>
+        Disable User
       </ModalHeader>
       <ModalBody className="modal-body-popupModal">
-        <Row>
-          <Col md={12}>
-            <p>Do you want to disable this user?</p>
-          </Col>
-        </Row>
+        <p style={{ fontSize: "16px", marginBottom: "25px" }}>
+          Are you sure you want to disable this user?
+        </p>
+
         <Row className="pt-3">
           <Col md={6}>
-            <Button color="danger" onClick={handleLogout} block>
-              Disable
-            </Button>{" "}
+            <Button 
+              color="danger" 
+              onClick={handleDisable} 
+              block 
+              disabled={loading}
+            >
+              {loading ? "Disabling..." : "Yes, Disable User"}
+            </Button>
           </Col>
 
           <Col md={6}>
             <Button
               outline
               color="secondary"
-              onClick={modalStore.closeModal}
+              onClick={handleCancel}
               block
+              disabled={loading}
             >
               Cancel
             </Button>
           </Col>
         </Row>
       </ModalBody>
-    </div>
+    </>
   );
 });
 

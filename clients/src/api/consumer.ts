@@ -7,6 +7,7 @@ import axios, {
 import type { ApiErrorResponse, ApiResponse } from "../constants/type";
 import type {
   changePasswordRequest,
+  createUserPayload,
   loginRequest,
 } from "../constants/RequestType";
 import type {
@@ -113,7 +114,7 @@ export const account = {
 
 export const user = {
   list: () => request.get<ApiResponse<UserListItem[]>>("/users/list"),
-  create: (body: FormData) => request.post<ApiResponse<UserListItem>>("/users", body),
+  create: (body: createUserPayload) => request.post<ApiResponse<UserListItem>>("/users", body),
   disable: (id: number) => request.delete<ApiResponse<string>>(`/users/${id}`)
 };
 

@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import type { UserListItem } from "../constants/ResponseType";
-import type { createUserRequest } from "../constants/RequestType";
+import type { createUserPayload, createUserRequest } from "../constants/RequestType";
 import consumer from "./consumer";
+import type { ErrorResponse, UserListItem } from "../constants/ResponseType";
 
 export default class UserStore {
   users: UserListItem[] = [];
@@ -64,29 +64,35 @@ export default class UserStore {
     this.error = null;
 
     try {
-      const formData = new FormData();
-      formData.append("FirstName", request.firstName);
-      formData.append("LastName", request.lastName);
-      formData.append("Gender", request.email);
-      formData.append("DoB", this.formatDate(request.dob));
-      formData.append("Type", request.role);
-      const newUser = await consumer.user.create(formData);
-      if (newUser.result !== null) {
-        this.users.unshift(newUser.result);
+      const year = request.dob.getFullYear();
+    const month = String(request.dob.getMonth() + 1).padStart(2, '0');
+    const day = String(request.dob.getDate()).padStart(2, '0');
+    const formattedDob = `${year}-${month}-${day}`;
+
+      const payload: createUserPayload = {
+        firstName: request.firstName.trim(),
+        lastName: request.lastName.trim(),
+        email: request.email.trim(),
+        role: request.role,
+        dob: formattedDob,
+      };
+      const response = await consumer.user.create(payload);
+
+      if (response.result) {
+        runInAction(() => {
+          this.users.unshift(response.result);
+        });
       }
-    } catch (err: { message?: string; status?: number } | Error | unknown) {
+
+      return response;
+    } catch (err) {
+      const errorResponse = err as ErrorResponse | undefined;
+      const errorMessage = errorResponse?.message || "Failed to create user. Please try again.";
       runInAction(() => {
-        let msg = "Create new user failed";
-
-        if (err && typeof err === "object" && "message" in err) {
-          msg = (err as { message: string }).message;
-        } else if (err instanceof Error) {
-          msg = err.message;
-        }
-
-        this.error = msg;
+        this.error = errorMessage;
       });
-      throw err;
+
+      throw new Error(errorMessage);
     } finally {
       runInAction(() => {
         this.setLoadingInitial(false);
@@ -94,16 +100,16 @@ export default class UserStore {
     }
   };
 
-  disableUser = async(id: number) => {
+  disableUser = async (id: number) => {
     try {
       await consumer.user.disable(id);
       runInAction(() => {
-        this.users = this.users.filter(u => u.id !== id);
-      })
+        this.users = this.users.filter((u) => u.id !== id);
+      });
     } catch (err) {
       console.log(err);
     }
-  }
+  };
 
   formatDate(date: Date): string {
     return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
