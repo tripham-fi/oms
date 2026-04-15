@@ -1,11 +1,10 @@
 package fi.haagahelia.oms.api;
 
 import fi.haagahelia.oms.dto.ApiResponseDto;
-import fi.haagahelia.oms.dto.RegisterDto;
 import fi.haagahelia.oms.dto.Result;
 import fi.haagahelia.oms.dto.User.UserCreateDto;
 import fi.haagahelia.oms.dto.User.UserUpdateDto;
-import fi.haagahelia.oms.dto.UserDto;
+import fi.haagahelia.oms.dto.User.UserDto;
 import fi.haagahelia.oms.service.UserService;
 import fi.haagahelia.oms.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;

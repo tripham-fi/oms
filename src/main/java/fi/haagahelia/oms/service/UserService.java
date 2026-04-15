@@ -4,6 +4,7 @@ import fi.haagahelia.oms.constant.Role;
 import fi.haagahelia.oms.domain.User;
 import fi.haagahelia.oms.dto.*;
 import fi.haagahelia.oms.dto.User.UserCreateDto;
+import fi.haagahelia.oms.dto.User.UserDto;
 import fi.haagahelia.oms.dto.User.UserUpdateDto;
 import fi.haagahelia.oms.repository.UserRepository;
 import fi.haagahelia.oms.util.CommonUtil;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
