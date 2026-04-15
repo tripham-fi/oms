@@ -12,6 +12,10 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByRoomAndBookingDate(Room room, LocalDate date);
     boolean existsByRoomAndBookingDateAndStartTimeLessThanAndEndTimeGreaterThan(
-            Room room, LocalDate date, LocalTime start, LocalTime end);
+            Room room,
+            LocalDate date,
+            LocalTime startTime,
+            LocalTime endTime
+    );
     List<Booking> findByUser(User user);
 }

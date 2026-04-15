@@ -32,7 +32,6 @@ const Sidebar = observer(() => {
           <strong>Home</strong>
         </Menu.Item>
 
-        {/* Users - only Admin and Super Admin */}
         {isRoleHigher && (
           <Menu.Item
             className="navitem"
@@ -45,7 +44,6 @@ const Sidebar = observer(() => {
           </Menu.Item>
         )}
 
-        {/* Rooms & Bookings - visible to all logged-in users */}
         <Menu.Item
           className="navitem"
           color="red"
@@ -64,6 +62,15 @@ const Sidebar = observer(() => {
           style={style}
         >
           <strong>Bookings</strong>
+        </Menu.Item>
+        <Menu.Item
+          className="navitem"
+          color="red"
+          as={NavLink}
+          to="/my-bookings"
+          style={style}
+        >
+          <strong>My Bookings</strong>
         </Menu.Item>
       </Menu>
     </div>

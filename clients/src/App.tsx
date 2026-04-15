@@ -12,6 +12,9 @@ import LoadingComponent from "./components/LoadingComponent";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import UserPage from "./pages/User/UserPage";
+import RoomsPage from "./pages/Room/RoomPage";
+import MyBookingsPage from "./pages/Booking/MyBookingsPage";
+import BookingPage from "./pages/Booking/BookingPage";
 
 const Home = () => (
   <div className="p-5 text-center">
@@ -69,27 +72,13 @@ const App = observer(() => {
         <div style={{ flex: 1, overflow: 'auto', backgroundColor: '#f9fafb', padding: '1.5rem' }}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-
             <Route path="/" element={<Home />} />
-
-            <Route
-              element={<CustomRoute requiredRole={["ADMIN", "SUPER_ADMIN"]} />}
-            >
-              <Route
-                path="/users"
-                element={<UserPage />}
-              />
+            <Route element={<CustomRoute requiredRole={["ADMIN", "SUPER_ADMIN"]} />}>
+              <Route path="/users" element={<UserPage />} />
             </Route>
-
-            <Route
-              path="/rooms"
-              element={<div>Rooms Page (Coming Soon)</div>}
-            />
-            <Route
-              path="/bookings"
-              element={<div>Bookings Page (Coming Soon)</div>}
-            />
-
+            <Route path="/rooms" element={<RoomsPage />}/>
+            <Route path="/bookings" element={<BookingPage />}/>
+            <Route path="/my-bookings" element={<MyBookingsPage />} />
             <Route
               path="*"
               element={

@@ -25,7 +25,7 @@ const Navbar = observer(() => {
 
   return (
     <Menu inverted fixed="top" style={{ backgroundColor: "#CF2338" }}>
-      <Container>
+      <Container style={{width: "100%"}}>
         {/* Left side: Page title */}
         <Menu.Item header style={{ color: "white", fontSize: "1.1rem" }}>
           {getPageTitle()}

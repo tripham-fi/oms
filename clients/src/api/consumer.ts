@@ -10,8 +10,10 @@ import type {
   loginRequest,
 } from "../constants/RequestType";
 import type {
+  Booking,
   CurrentAccountResult,
   LoginResult,
+  Room,
   UserListItem,
 } from "../constants/ResponseType";
 
@@ -115,9 +117,21 @@ export const user = {
   disable: (id: number) => request.delete<ApiResponse<string>>(`/users/${id}`)
 };
 
+export const booking = {
+  getAvailableRooms: () => 
+    request.get<ApiResponse<Room[]>>("/bookings/rooms"),
+
+  createBooking: (body: unknown) => 
+    request.post<ApiResponse<Booking>>("/bookings", body),
+
+  getMyBookings: () => 
+    request.get<ApiResponse<Booking[]>>("/bookings/my"),
+}
+
 const consumer = {
   account,
-  user
+  user,
+  booking
 };
 
 export default consumer;
