@@ -1,6 +1,5 @@
 package fi.haagahelia.oms.api;
 
-import fi.haagahelia.oms.domain.Booking;
 import fi.haagahelia.oms.domain.Room;
 import fi.haagahelia.oms.dto.ApiResponseDto;
 import fi.haagahelia.oms.dto.Booking.BookingCreateDto;
@@ -55,6 +54,13 @@ public class BookingController {
     @RequestMapping(value = "/rooms", method = RequestMethod.GET)
     public ResponseEntity<ApiResponseDto<List<Room>>> getAvailableRooms() {
         Result<List<Room>> result = bookingService.getAvailableRooms();
+        return ResponseUtil.handleResult(result);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity<ApiResponseDto<String>> deleteBooking(@PathVariable Long id) {
+        Result<String> result = bookingService.deleteBooking(id);
         return ResponseUtil.handleResult(result);
     }
 }

@@ -125,8 +125,6 @@ public class UserService {
         return Result.success("user " + existUser.getUsername() + " is disabled");
     }
 
-    // TODO merge create and update service into save service
-
     public Result<UserDto> findByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

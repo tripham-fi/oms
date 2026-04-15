@@ -1,15 +1,33 @@
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { useStore } from "../../api/store";
-import { Card, Header, Segment, Icon } from "semantic-ui-react";
+import {
+  Card,
+  Header,
+  Segment,
+  Icon,
+  Button,
+} from "semantic-ui-react";
 import LoadingComponent from "../../components/LoadingComponent";
+import ConfirmDeleteBookingModal from "../../components/modal/ConfirmDeleteBookingModal";
 
 const MyBookingsPage = observer(() => {
-  const { bookingStore } = useStore();
+  const { bookingStore, modalStore } = useStore();
+
 
   useEffect(() => {
     bookingStore.loadMyBookings();
   }, [bookingStore]);
+
+  const handleDeleteClick = (bookingId: number, bookingTitle: string) => {
+    modalStore.openModal(
+      <ConfirmDeleteBookingModal
+        bookingId={bookingId}
+        bookingTitle={bookingTitle}
+      />,
+      "md"
+    );
+  };
 
   if (bookingStore.loading) {
     return <LoadingComponent content="Loading my booking list..." />;
@@ -43,7 +61,18 @@ const MyBookingsPage = observer(() => {
                 </Card.Description>
               </Card.Content>
               <Card.Content extra>
-                Booked by: <strong>{booking.bookedBy}</strong>
+                <div className="flex justify-between items-center">
+                  <span>
+                    Booked by: <strong>{booking.bookedBy}</strong>
+                  </span>
+                  <Button
+                    color="red"
+                    size="tiny"
+                    icon="trash"
+                    style={{ marginLeft: "10px" }}
+                    onClick={() => handleDeleteClick(booking.id, booking.title)}
+                  />
+                </div>
               </Card.Content>
             </Card>
           ))}

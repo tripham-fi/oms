@@ -36,7 +36,8 @@ export class BookingStore {
       }
     } catch (error) {
       const errorResponse = error as ErrorResponse | undefined;
-      const errorMessage = errorResponse?.message || "Failed to create booking. Please try again.";
+      const errorMessage =
+        errorResponse?.message || "Failed to create booking. Please try again.";
       return {
         isSuccess: false,
         value: null,
@@ -46,6 +47,32 @@ export class BookingStore {
       runInAction(() => {
         this.loading = false;
       });
+    }
+  };
+
+  deleteBooking = async (bookingId: number) => {
+    try {
+      const response = await consumer.booking.deleteBooking(bookingId);
+
+      if (response.status === "success") {
+        runInAction(() => {
+          this.myBookings = this.myBookings.filter((b) => b.id !== bookingId);
+        });
+        return { isSuccess: true, error: null };
+      } else {
+        return {
+          isSuccess: false,
+          error: response.errors?.[0] || "Failed to delete booking",
+        };
+      }
+    } catch (error) {
+      const errorResponse = error as ErrorResponse | undefined;
+      const errorMessage =
+        errorResponse?.message || "Failed to delete booking";
+      return {
+        isSuccess: false,
+        error: errorMessage,
+      };
     }
   };
 

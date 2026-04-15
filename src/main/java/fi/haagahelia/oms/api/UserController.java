@@ -36,7 +36,6 @@ public class UserController {
     @RequestMapping(value = "", method = RequestMethod.POST)
     public ResponseEntity<ApiResponseDto<UserDto>> createNewUser(@Valid @RequestBody UserCreateDto dto) {
         try {
-            // TODO: Implement location and admin role assign only for super_admin
             Result<UserDto> result = userService.createUser(dto);
 
             if(result.isSuccess()) {

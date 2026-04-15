@@ -126,6 +126,8 @@ export const booking = {
 
   getMyBookings: () => 
     request.get<ApiResponse<Booking[]>>("/bookings/my"),
+  deleteBooking: (bookingId: number) => 
+    request.delete<ApiResponse<string>>(`/bookings/${bookingId}`),
 }
 
 const consumer = {

@@ -10,7 +10,9 @@ import fi.haagahelia.oms.repository.BookingRepository;
 import fi.haagahelia.oms.repository.RoomRepository;
 import fi.haagahelia.oms.repository.UserRepository;
 import fi.haagahelia.oms.util.SecurityUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -58,6 +60,28 @@ public class BookingService {
         booking = bookingRepository.save(booking);
 
         return Result.success(BookingDto.from(booking));
+    }
+
+    @Transactional
+    public Result<String> deleteBooking(Long id){
+        String username = SecurityUtil.getCurrentUsernameOrThrow();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Booking existbooking = bookingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Booking with id: " +  id + " does not found"));
+
+        if (!existbooking.getUser().getUsername().equals(user.getUsername())) {
+            return Result.failure("You can only delete your own bookings");
+        }
+
+        try {
+            bookingRepository.deleteById(id);
+            return Result.success("Booking deleted successfully");
+        } catch (Exception e) {
+            return Result.failure("Failed to delete booking: " + e.getMessage());
+        }
     }
 
     public Result<List<BookingDto>> getMyBookings() {
